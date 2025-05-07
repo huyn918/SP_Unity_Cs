@@ -43,8 +43,8 @@ namespace HH_TextRPG
                 Console.WriteLine($"Lv. {Lvl}");
                 Console.Write($"{Name}  ");
                 Console.WriteLine($"({Enum.GetName(typeof(MajorType), Major)})");
-                Console.WriteLine($"공격력 : {Strength_Point:N1} (+ {(Strength_Point- (Lvl-1)*0.5f - 10):N1})");
-                Console.WriteLine($"방어력 : {Defence_Point} (+ {Defence_Point-(Lvl-1)-5})");
+                Console.WriteLine($"공격력 : {Strength_Point:N1} (+ {(Strength_Point - (Lvl - 1) * 0.5f - 10):N1})");
+                Console.WriteLine($"방어력 : {Defence_Point} (+ {Defence_Point - (Lvl - 1) - 5})");
                 Console.WriteLine($"체력 : {Health_Point:N1}");
                 Console.WriteLine($"Gold : {Gold} G\n");
 
@@ -68,7 +68,7 @@ namespace HH_TextRPG
                     item_AttackStat += Int32.Parse(Item_List[i][2]);
             }
 
-            current_user.Strength_Point = 10 + item_AttackStat + (current_user.Lvl - 1)* 0.5f;
+            current_user.Strength_Point = 10 + item_AttackStat + (current_user.Lvl - 1) * 0.5f;
             current_user.Defence_Point = 5 + item_DefenceStat + (current_user.Lvl - 1);
         }
         // 장비 장착, 레벨업 등으로 인한 스텟 갱신
@@ -94,8 +94,10 @@ namespace HH_TextRPG
         }
         // 아이템을 추가할 때 쓰자. 다만 던전 드랍 같이 유저인풋이 아니라 드랍되게 만드려면 아이템 목록에 미리 넣어놓자,
 
+        public static List<User> user_List = new List<User>();
         public static User current_user;
-        // 나중엔 유저 목록도 배열이나 리스트로 만들도록 하자. 저장 기능 구현하면 리스트에서 꺼내올 수 있도록.
+        // 유저 목록 리스트화. 저장 기능 구현하면 리스트에서 꺼내올 수 있도록.
+
         public static List<Dungeon_Data> dungeon_Datas = new List<Dungeon_Data>();
         // 던전 데이터를 구조체(Dungeon_Data)로 선언해 놓고, 리스트로 생성해 보자
 
@@ -124,6 +126,8 @@ namespace HH_TextRPG
             };
         }
         // 던전 정보 리스트에 넣기
+
+
         static void Main()
         {
             ItemInitializer();
@@ -133,11 +137,27 @@ namespace HH_TextRPG
             dungeon_Datas.Add(Dungeon_Initializer(0.7f, 0.7f, 17, 2500, "어려운 던전"));
             // 던전 정보 불러옴.
 
-            Console.WriteLine("스파르타 던전에 오신 여러분 환영합니다.");
+            // ---------------------(위에서 저장된 json들 불러오기)------------------------------
+
+            Console.WriteLine("스파르타 던전에 오신 여러분 환영합니다.\n");
             // 던전 입장 시작!
-            current_user = MakeCharacter();
+            Console.WriteLine("1, 게임 시작");
+            Console.WriteLine("2. 게임 종료\n");
+
+            int userinput = UserInputHandler(2);
+
+            if (userinput == 1)
+            {
+                Console.Clear();
+                int userselected = ChooseCharacter();
+            }
+
+            Console.WriteLine();
+            user_List.Add(MakeCharacter());
             // 캐릭터 생성 시작
 
+            current_user = user_List[0];
+            // 선택한 캐릭터 정보를 current_user에 담아서 인게임에서 이용
             Console.Clear();
 
             while (true) HomePosition();
@@ -168,7 +188,7 @@ namespace HH_TextRPG
                 Console.Clear();
 
                 if (userinput == 0) break;
-                
+
                 // 상점 구매 창으로 이동
                 else if (userinput == 1)
                 {
@@ -241,7 +261,7 @@ namespace HH_TextRPG
         // 상점이랑 인벤토리가 많이 지저분합니다 코드가...
         static public void Inventory()
         {
-            int userinput; 
+            int userinput;
             while (true)
             {
                 Console.Clear();
@@ -261,68 +281,68 @@ namespace HH_TextRPG
                 if (userinput == 0) break;
                 // HomePosition으로 돌아감
                 else if (userinput == 1)
-                // 장착 관리 창으로 이동
-                while(true)
-                {
-                    Console.Clear();
-                    Console.WriteLine("인벤토리 - 장착 관리");
-                    Console.WriteLine("장착을 원하는 아이템을 선택해 주세요.");
-                    Console.WriteLine("이미 장착한 아이템을 선택 시 장착을 해제합니다.");
-                    Console.WriteLine("============================================");
-                    Console.WriteLine("[아이템 목록]");
-                    ItemListPrint_User(true);
-                    Console.WriteLine();
-                    Console.WriteLine("0 : 나가기\n");
-
-                    int selected_Item_row = 0;
-                    int selected_Item_type = 0;
-                    int changed_Item_row = -1;
-                    int itemCount_User = 0;
-
-                    for (int i = 0; i < Item_List.Length; i++)
-                        if (Item_List[i][4] == "1") itemCount_User++;
-                    // 소지 중인 아이템 수 세기 (나중엔 미리 세 두자. 스파게티;)
-
-                    userinput = UserInputHandler(itemCount_User, true);
-                    // 유저 인풋값 받기
-                    if (userinput == 0) break;
-                    // 0이면 바로 탈출, 아니면 장비 탈착 시작
-                    else
+                    // 장착 관리 창으로 이동
+                    while (true)
                     {
-                        for (int i = 0; i < Item_List.Length; i++)
-                        {
-                            if (Item_List[i][4] == "1")
-                                selected_Item_row++;
-                            //카운트와 유저인풋 일치하면 해당 열 찾기 완료 = 다음 단계
-                            if (selected_Item_row == userinput)
-                            {
-                                selected_Item_type = Int32.Parse(Item_List[i][6]);
-                                if (Item_List[i][5] == "0")
-                                {
-                                    Item_List[i][5] = "1";
-                                    changed_Item_row = i;
-                                    break;
-                                }
-                                else if (Item_List[i][5] == "1")
-                                {
-                                    Item_List[i][5] = "0";
-                                    changed_Item_row = i;
-                                    break;
-                                }
-                                //  중복 체크를 어떻게 할 것인가? : 우선 유저가 체크한 거는 상태 스왑
-                            }
-                        }
+                        Console.Clear();
+                        Console.WriteLine("인벤토리 - 장착 관리");
+                        Console.WriteLine("장착을 원하는 아이템을 선택해 주세요.");
+                        Console.WriteLine("이미 장착한 아이템을 선택 시 장착을 해제합니다.");
+                        Console.WriteLine("============================================");
+                        Console.WriteLine("[아이템 목록]");
+                        ItemListPrint_User(true);
+                        Console.WriteLine();
+                        Console.WriteLine("0 : 나가기\n");
 
-                        for (int i = 0; i < Item_List.Length; i++) // 위에까지는 정상 작동. 다시 순회를 돌면서
+                        int selected_Item_row = 0;
+                        int selected_Item_type = 0;
+                        int changed_Item_row = -1;
+                        int itemCount_User = 0;
+
+                        for (int i = 0; i < Item_List.Length; i++)
+                            if (Item_List[i][4] == "1") itemCount_User++;
+                        // 소지 중인 아이템 수 세기 (나중엔 미리 세 두자. 스파게티;)
+
+                        userinput = UserInputHandler(itemCount_User, true);
+                        // 유저 인풋값 받기
+                        if (userinput == 0) break;
+                        // 0이면 바로 탈출, 아니면 장비 탈착 시작
+                        else
                         {
-                            if (Int32.Parse(Item_List[i][6]) == selected_Item_type) // 선택한 아이템 목록과 같은 타입의 행에서
-                            { 
-                                if (Item_List[i][5] == "1" && i != changed_Item_row) // 아이템이 장착 중이면서 + 선택한 항이 아니면 
-                                    Item_List[i][5] = "0"; // 장착 해제
+                            for (int i = 0; i < Item_List.Length; i++)
+                            {
+                                if (Item_List[i][4] == "1")
+                                    selected_Item_row++;
+                                //카운트와 유저인풋 일치하면 해당 열 찾기 완료 = 다음 단계
+                                if (selected_Item_row == userinput)
+                                {
+                                    selected_Item_type = Int32.Parse(Item_List[i][6]);
+                                    if (Item_List[i][5] == "0")
+                                    {
+                                        Item_List[i][5] = "1";
+                                        changed_Item_row = i;
+                                        break;
+                                    }
+                                    else if (Item_List[i][5] == "1")
+                                    {
+                                        Item_List[i][5] = "0";
+                                        changed_Item_row = i;
+                                        break;
+                                    }
+                                    //  중복 체크를 어떻게 할 것인가? : 우선 유저가 체크한 거는 상태 스왑
+                                }
+                            }
+
+                            for (int i = 0; i < Item_List.Length; i++) // 위에까지는 정상 작동. 다시 순회를 돌면서
+                            {
+                                if (Int32.Parse(Item_List[i][6]) == selected_Item_type) // 선택한 아이템 목록과 같은 타입의 행에서
+                                {
+                                    if (Item_List[i][5] == "1" && i != changed_Item_row) // 아이템이 장착 중이면서 + 선택한 항이 아니면 
+                                        Item_List[i][5] = "0"; // 장착 해제
+                                }
                             }
                         }
                     }
-                }
 
             }
 
@@ -330,97 +350,114 @@ namespace HH_TextRPG
         }
         // 상점이랑 인벤토리가 많이 지저분합니다 코드가...
 
-        static public void ItemListPrint_User(bool isEquip) // 장착 창 들어가면 true
+        static public int ChooseCharacter()
+        {
+            Console.WriteLine("캐릭터 선택");
+            Console.WriteLine("플레이하실 캐릭터를 선택해 주세요.");
+            Console.WriteLine("============================================\n");
+            int count_character = user_List.ToArray().Length;
+
+            for (int i = 0; i < count_character; i++)
             {
-                int itemCount = 0;
-
-                for (int i = 0; i < Item_List.Length; i++)
-                {
-                    if (Item_List[i][4] == "1") // 소지 중인 경우
-                    {
-                        itemCount++;
-                        if (isEquip) Console.Write($" {itemCount}. "); // 장착 창 들어가면 숫자 출력
-                        else Console.Write($" - "); // 그 외엔 하이푼
-
-                        if (Item_List[i][5] == "1")
-                            Console.Write("[E]");
-                        else if (Item_List[i][5] == "0")
-                            Console.Write("[ ]");
-
-                        Console.Write($"{Item_List[i][0]} | 방어력 +{Item_List[i][2]} | {Item_List[i][1]}\n");
-                    }
-                }
-                Console.WriteLine();
+                Console.WriteLine($"{i}. {user_List[i].Name}");
             }
+
+            Console.WriteLine("\n 0. 캐릭터 생성하기");
+
+            return UserInputHandler(count_character, true);
+        }
+
+        static public void ItemListPrint_User(bool isEquip) // 장착 창 들어가면 true
+        {
+            int itemCount = 0;
+
+            for (int i = 0; i < Item_List.Length; i++)
+            {
+                if (Item_List[i][4] == "1") // 소지 중인 경우
+                {
+                    itemCount++;
+                    if (isEquip) Console.Write($" {itemCount}. "); // 장착 창 들어가면 숫자 출력
+                    else Console.Write($" - "); // 그 외엔 하이푼
+
+                    if (Item_List[i][5] == "1")
+                        Console.Write("[E]");
+                    else if (Item_List[i][5] == "0")
+                        Console.Write("[ ]");
+
+                    Console.Write($"{Item_List[i][0]} | 방어력 +{Item_List[i][2]} | {Item_List[i][1]}\n");
+                }
+            }
+            Console.WriteLine();
+        }
 
         static public void ItemListPrint_Shop(bool isBuying) // 구매 창 들어가면 true
+        {
+            int itemCount = 0;
+
+            for (int i = 0; i < Item_List.Length; i++)
             {
-                int itemCount = 0;
-
-                for (int i = 0; i < Item_List.Length; i++)
+                if (Item_List[i][4] != "0") // 미등장 아이템 제외 출력
                 {
-                    if (Item_List[i][4] != "0") // 미등장 아이템 제외 출력
-                    {
-                        itemCount++;
+                    itemCount++;
 
-                        if (isBuying) Console.Write($" {itemCount}. "); // 구매창 들어가면 숫자 출력
-                        else Console.Write($" - "); // 그 외엔 하이푼
+                    if (isBuying) Console.Write($" {itemCount}. "); // 구매창 들어가면 숫자 출력
+                    else Console.Write($" - "); // 그 외엔 하이푼
 
-                        if (Item_List[i][4] == "1") // 유저가 소지 중이면
-                            Console.Write("[x]");
-                        else if (Item_List[i][4] == "2") // 상점이 소지 중이면
-                            Console.Write("[ ]");
+                    if (Item_List[i][4] == "1") // 유저가 소지 중이면
+                        Console.Write("[x]");
+                    else if (Item_List[i][4] == "2") // 상점이 소지 중이면
+                        Console.Write("[ ]");
 
-                        Console.Write($"{Item_List[i][0]} | 방어력 +{Item_List[i][2]} | 가격 : {Item_List[i][3]}G |{Item_List[i][1]}\n");
-                    }
+                    Console.Write($"{Item_List[i][0]} | 방어력 +{Item_List[i][2]} | 가격 : {Item_List[i][3]}G |{Item_List[i][1]}\n");
                 }
             }
+        }
 
         static public void HomePosition()
+        {
+            Console.Clear();
+            Console.WriteLine("스파르타 던전에 오신 여러분 환영합니다.");
+            Console.WriteLine("이곳에서 던전으로 들어가기 전 여러 활동을 하실 수 있습니다.");
+            Console.WriteLine("============================================");
+            Console.WriteLine("1. 상태 보기");
+            Console.WriteLine("2. 인벤토리");
+            Console.WriteLine("3. 상점");
+            Console.WriteLine("4. 던전 입장");
+            Console.WriteLine("5. 휴식하기");
+
+            int userinput = UserInputHandler(5);
+
+            switch (userinput)
             {
-                Console.Clear();
-                Console.WriteLine("스파르타 던전에 오신 여러분 환영합니다.");
-                Console.WriteLine("이곳에서 던전으로 들어가기 전 여러 활동을 하실 수 있습니다.");
-                Console.WriteLine("============================================");
-                Console.WriteLine("1. 상태 보기");
-                Console.WriteLine("2. 인벤토리");
-                Console.WriteLine("3. 상점");
-                Console.WriteLine("4. 던전 입장");
-                Console.WriteLine("5. 휴식하기");
+                case 1:
+                    StatApplying();
+                    current_user.PrintInfo();
+                    break;
 
-                int userinput = UserInputHandler(5);
+                case 2:
+                    Console.Clear();
+                    Inventory();
+                    break;
 
-                switch (userinput)
-                {
-                    case 1:
-                        StatApplying();
-                        current_user.PrintInfo();
-                        break;
+                case 3:
 
-                    case 2:
-                        Console.Clear();    
-                        Inventory();
-                        break;
+                    Console.Clear();
+                    Shop();
+                    break;
 
-                    case 3:
+                case 4:
+                    Console.Clear();
+                    Dungeon_Entry();
+                    break;
 
-                        Console.Clear();
-                        Shop();
-                        break;
-
-                    case 4:
-                        Console.Clear();
-                        Dungeon_Entry();
-                        break;
-
-                    case 5:
-                        Console.Clear();
-                        Rest();
-                        break;
-
-                }
+                case 5:
+                    Console.Clear();
+                    Rest();
+                    break;
 
             }
+
+        }
         static public void Dungeon_Entry()
         {
             while (true)
@@ -431,7 +468,7 @@ namespace HH_TextRPG
                 Console.WriteLine("충분한 준비를 마치고 던전에 입장하세요.");
                 Console.WriteLine("============================================");
                 Console.WriteLine($"현재 방어력 : {current_user.Defence_Point} / HP : {current_user.Health_Point}\n");
-                
+
                 Console.WriteLine("1. 쉬운 던전 \tㅣ 방어력 5 이상 권장");
                 Console.WriteLine("2. 일반 던전 \tㅣ방어력 11 이상 권장");
                 Console.WriteLine("3. 어려운 던전\tㅣ방어력 17 이상 권장\n");
@@ -442,7 +479,7 @@ namespace HH_TextRPG
 
                 if (userinput + 1 == 0) break; // 0이면 탈출
                 else InDungeonChanges(userinput); // 1,2,3 이면 인던 진행
-                
+
             }
         }
 
@@ -474,14 +511,14 @@ namespace HH_TextRPG
                 Console.WriteLine("던전 클리어");
                 Console.WriteLine("축하합니다!");
                 Console.WriteLine($"{dungeon.Name} 공략에 성공하셨습니다!\n");
-                
+
                 Console.WriteLine("[탐험 결과]");
                 Console.Write($"체력 : {current_user.Health_Point:N1} -> ");
-                current_user.Health_Point -= (random.Next(20,36) - (current_user.Defence_Point - dungeon.Required_Def));
+                current_user.Health_Point -= (random.Next(20, 36) - (current_user.Defence_Point - dungeon.Required_Def));
                 Console.WriteLine($"{current_user.Health_Point:N1}");
-                
+
                 Console.Write($"골드 : {current_user.Gold} -> ");
-                current_user.Gold += (int)(dungeon.Gold_Drop * (1 + current_user.Strength_Point * random.Next(100,201) / 10000));
+                current_user.Gold += (int)(dungeon.Gold_Drop * (1 + current_user.Strength_Point * random.Next(100, 201) / 10000));
                 Console.WriteLine($"{current_user.Gold}\n");
 
                 current_user.Exp++;
@@ -492,9 +529,9 @@ namespace HH_TextRPG
                     Console.WriteLine("레벨 업!");
                     Console.WriteLine($"현재 레벨 : {current_user.Lvl}\n");
                 }
-                
+
                 Console.WriteLine("0. 나가기");
-                UserInputHandler(0,true);
+                UserInputHandler(0, true);
             }
 
         }
@@ -535,102 +572,104 @@ namespace HH_TextRPG
             }
         }
         static public User MakeCharacter()
-            {
-                User current_user = new User();
+        {
+            User userdata = new User();
 
-                Console.WriteLine("캐릭터를 생성합니다.");
-                current_user.Name = WriteName();
-                Console.Clear();
-                current_user.Major = ChooseMajor();
-                current_user.Strength_Point = 10;
-                current_user.Defence_Point = 5;
-                current_user.Health_Point = 100;
-                current_user.Gold = 1500;
-                current_user.Lvl = 1;
+            Console.WriteLine("캐릭터를 생성합니다.");
+            userdata.Name = WriteName();
+            Console.Clear();
+            userdata.Major = ChooseMajor();
+            userdata.Strength_Point = 10;
+            userdata.Defence_Point = 5;
+            userdata.Health_Point = 100;
+            userdata.Gold = 1500;
+            userdata.Lvl = 1;
 
-                return current_user;
+            return userdata;
         }
 
         static public string WriteName()
-            {
-                Console.WriteLine("캐릭터의 이름을 입력해 주세요.");
-                string newName = Console.ReadLine();
+        {
+            Console.WriteLine("캐릭터의 이름을 입력해 주세요.");
+            string newName = Console.ReadLine();
 
 
-                Console.WriteLine();
-                Console.WriteLine($"입력하신 이름은 {newName} 입니다.\n");
+            Console.WriteLine();
+            Console.WriteLine($"입력하신 이름은 {newName} 입니다.\n");
 
-                Console.WriteLine("그대로 진행하시겠습니까?");
-                Console.WriteLine("1. 확인");
-                Console.WriteLine("2. 다시 입력");
-                int userinput = UserInputHandler(2);
-                if (userinput == 1) return newName;
-                else return WriteName();
-            }
+            Console.WriteLine("그대로 진행하시겠습니까?");
+            Console.WriteLine("1. 확인");
+            Console.WriteLine("2. 다시 입력");
+            int userinput = UserInputHandler(2);
+            if (userinput == 1) return newName;
+            else return WriteName();
+        }
 
         static public int ChooseMajor()
+        {
+            Console.WriteLine($"전직하고 싶은 직업을 선택하세요.\n");
+
+            int howmanyMajors = Enum.GetValues<MajorType>().Length;
+            for (int i = 1; i < howmanyMajors + 1; i++)
             {
-                Console.WriteLine($"전직하고 싶은 직업을 선택하세요.\n");
-
-                int howmanyMajors = Enum.GetValues<MajorType>().Length;
-                for (int i = 1; i < howmanyMajors + 1; i++)
-                {
-                    Console.WriteLine($"{i}. {Enum.GetName(typeof(MajorType), i)} ");
-                }
-
-                int major_selected = UserInputHandler(howmanyMajors);
-
-                Console.Clear();
-                Console.WriteLine($"선택한 직업은 {Enum.GetName(typeof(MajorType), major_selected)} 입니다.");
-                Console.WriteLine("그대로 진행하시겠습니까?");
-                Console.WriteLine("1. 확인");
-                Console.WriteLine("2. 다시 입력");
-
-                int userinput = UserInputHandler(2);
-
-                if (userinput == 1) return major_selected;
-                else return ChooseMajor();
+                Console.WriteLine($"{i}. {Enum.GetName(typeof(MajorType), i)} ");
             }
+
+            int major_selected = UserInputHandler(howmanyMajors);
+
+            Console.Clear();
+            Console.WriteLine($"선택한 직업은 {Enum.GetName(typeof(MajorType), major_selected)} 입니다.");
+            Console.WriteLine("그대로 진행하시겠습니까?");
+            Console.WriteLine("1. 확인");
+            Console.WriteLine("2. 다시 입력");
+
+            int userinput = UserInputHandler(2);
+
+            if (userinput == 1) return major_selected;
+            else return ChooseMajor();
+        }
 
         static public int UserInputHandler(int vaild_Input)
-            {
-            Console.WriteLine("============================================");    
+        {
+            Console.WriteLine("============================================");
             Console.WriteLine("원하시는 행동을 입력해주세요.");
-                string userinput = Console.ReadLine();
+            string userinput = Console.ReadLine();
 
-                bool isVaildInput = Int32.TryParse(userinput, out int result);
+            bool isVaildInput = Int32.TryParse(userinput, out int result);
 
-                if (isVaildInput && result > 0 && result <= vaild_Input)
-                {
-                    return result;
-                }
-                else
-                {
-                    Console.WriteLine("잘못된 입력입니다. 다시 입력해주세요");
-                    return UserInputHandler(vaild_Input);
-                }
+            if (isVaildInput && result > 0 && result <= vaild_Input)
+            {
+                return result;
             }
+            else
+            {
+                Console.WriteLine("잘못된 입력입니다. 다시 입력해주세요");
+                return UserInputHandler(vaild_Input);
+            }
+        }
         // 유저 숫자 인풋 받는 거! 아래는 0(나가기)를 포함하는 경우에 호출하는 오버로드? 라고 하나요?
 
-        static public int UserInputHandler(int vaild_Input, bool isThereZero) // 뒤로 가기 버튼을 위한 0이 있으면 true
+        public static int UserInputHandler(int vaild_Input, bool isThereZero)
         {
-            Console.WriteLine("============================================"); 
+            Console.WriteLine("============================================");
             Console.WriteLine("원하시는 행동을 입력해주세요.");
-                string userinput = Console.ReadLine();
+            string userinput = Console.ReadLine();
 
-                bool isVaildInput = Int32.TryParse(userinput, out int result);
+            bool isVaildInput = Int32.TryParse(userinput, out int result);
 
-                if (isVaildInput && result >= 0 && result <= vaild_Input) // 허용값에 0 포함
-                {
-                    return result;
-                }
-                else
-                {
-                    Console.WriteLine("잘못된 입력입니다. 다시 입력해주세요");
-                    return UserInputHandler(vaild_Input, isThereZero);
-                }
+            if (isVaildInput && result >= 0 && result <= vaild_Input)
+            {
+                return result;
             }
+            else
+            {
+                Console.WriteLine("잘못된 입력입니다. 다시 입력해주세요");
+                return UserInputHandler(vaild_Input, isThereZero);
+            }
+        }
+
     }
+
 
     
 }
